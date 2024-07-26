@@ -4,6 +4,7 @@ on: [pull_request]
 
 jobs:
   audit:
+    name: audit
     runs-on: ubuntu-latest
 
     steps:
@@ -21,12 +22,6 @@ jobs:
       - name: Run Clippy - Verificando qualidade do código, práticas recomendadas, e possíveis bugs
         run: cargo clippy -- -D warnings
 
-      - name: Install Rustfmt
-        run: rustup component add rustfmt
-
-      - name: Check Rustfmt - Verificando formatação do código
-        run: cargo fmt -- --check
-
       - name: Install cargo-audit
         run: cargo install cargo-audit
 
@@ -34,6 +29,8 @@ jobs:
         run: cargo audit
 
   tests:
+    name: tests & lint
+    needs: audit
     runs-on: ubuntu-latest
 
     steps:
@@ -45,8 +42,14 @@ jobs:
           toolchain: stable
           profile: minimal
 
+      - name: Install Rustfmt
+        run: rustup component add rustfmt
+
+      - name: Check Rustfmt - Verificando formatação do código
+        run: cargo fmt -- --check
+
       - name: Install grcov
-        run: sudo apt-get install grcov
+        run: cargo install grcov
 
       - name: Run Tests with Coverage
         env:
@@ -54,6 +57,9 @@ jobs:
           RUSTFLAGS: "-Cinstrument-coverage"
           LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
         run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-tools-12
+          export PATH="/usr/lib/llvm-12/bin:$PATH"
           cargo build
           cargo test
           grcov . --binary-path ./target/debug/ -s . -t cobertura --branch --ignore-not-existing -o cobertura.xml
