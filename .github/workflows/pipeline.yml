@@ -3,27 +3,11 @@ name: Audit
 on: [pull_request]
 
 jobs:
-  build:
+  audit:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Cache cargo registry
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-registry-
-
-      - name: Cache cargo index
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-index-
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -34,7 +18,7 @@ jobs:
       - name: Install Clippy
         run: rustup component add clippy
 
-      - name: Run Clippy - Verificando qualidade do código, práticas recomendadas, e possíveis bug
+      - name: Run Clippy - Verificando qualidade do código, práticas recomendadas, e possíveis bugs
         run: cargo clippy -- -D warnings
 
       - name: Install Rustfmt
@@ -48,9 +32,39 @@ jobs:
 
       - name: Run cargo-audit - Verificando se possui algum pacote com vulnerabilidade
         run: cargo audit
+            - name: Install grcov
+        run: sudo apt-get install grcov
 
-      - name: Install MIRAI
-        run: cargo install mirai
+  tests:
+    runs-on: ubuntu-latest
 
-      - name: Run MIRAI - Verificando possíveis falhas de segurança em tempo de compilação
-        run: cargo mirai
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+      - name: Run Tests with Coverage
+        env:
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Cinstrument-coverage"
+          LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
+        run: |
+          cargo build
+          cargo test
+          grcov . --binary-path ./target/debug/ -s . -t cobertura --branch --ignore-not-existing -o cobertura.xml
+
+      - name: Check Coverage
+        run: |
+          coverage=$(grep -Po 'line-rate="\K[0-9.]+' cobertura.xml)
+          echo "Coverage is $coverage"
+          coverage_percentage=$(echo "$coverage * 100" | bc)
+          echo "Coverage percentage is $coverage_percentage"
+          if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
+            echo "Coverage is below 90%"
+            exit 1
+          else
+            echo "Coverage is above 90%"
+          fi

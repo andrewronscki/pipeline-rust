@@ -3,4 +3,7 @@ name = "pipeline_rust"
 version = "0.1.0"
 edition = "2021"
 
+[dev-dependencies]
+grcov = "0.8"
+
 [dependencies]
