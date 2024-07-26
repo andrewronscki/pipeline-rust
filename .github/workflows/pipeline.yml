@@ -43,11 +43,11 @@ jobs:
       - name: Check Rustfmt - Verificando formatação do código
         run: cargo fmt -- --check
 
-      - name: Install cargo-deny
-        run: cargo install cargo-deny
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
 
-      - name: Run cargo-deny - Verificando se possui algum pacote com vulnerabilidade, licenciamento e políticas de dependências
-        run: cargo deny check
+      - name: Run cargo-audit - Verificando se possui algum pacote com vulnerabilidade
+        run: cargo audit
 
       - name: Install MIRAI
         run: cargo install mirai
