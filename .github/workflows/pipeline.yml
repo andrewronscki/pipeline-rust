@@ -32,8 +32,6 @@ jobs:
 
       - name: Run cargo-audit - Verificando se possui algum pacote com vulnerabilidade
         run: cargo audit
-            - name: Install grcov
-        run: sudo apt-get install grcov
 
   tests:
     runs-on: ubuntu-latest
@@ -46,6 +44,10 @@ jobs:
         with:
           toolchain: stable
           profile: minimal
+
+      - name: Install grcov
+        run: sudo apt-get install grcov
+
       - name: Run Tests with Coverage
         env:
           CARGO_INCREMENTAL: "0"
