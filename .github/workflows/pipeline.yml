@@ -56,13 +56,18 @@ jobs:
 
       - name: Check Coverage
         run: |
-          coverage=$(grep -Po 'line-rate="\K[0-9.]+' target/tarpaulin/html/index.html)
-          echo "Coverage is $coverage"
-          coverage_percentage=$(echo "$coverage * 100" | bc)
-          echo "Coverage percentage is $coverage_percentage"
-          if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
-            echo "Coverage is below 90%"
-            exit 1
+          if [ -f target/tarpaulin/html/index.html ]; then
+            coverage=$(grep -Po 'line-rate="\K[0-9.]+' target/tarpaulin/html/index.html)
+            echo "Coverage is $coverage"
+            coverage_percentage=$(echo "$coverage * 100" | bc)
+            echo "Coverage percentage is $coverage_percentage"
+            if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
+              echo "Coverage is below 90%"
+              exit 1
+            else
+              echo "Coverage is above 90%"
+            fi
           else
-            echo "Coverage is above 90%"
+            echo "Coverage report not found"
+            exit 1
           fi
