@@ -58,8 +58,9 @@ jobs:
           LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm
-          export PATH="/usr/lib/llvm-12/bin:$PATH"
+          sudo apt-get install -y llvm-tools-12 llvm-12 clang
+          export LLVM_PROFILE_FILE="coverage-%p-%m.profraw"
+          cargo clean
           cargo build
           cargo test
           grcov . --binary-path ./target/debug/ -s . -t cobertura --branch --ignore-not-existing -o cobertura.xml
