@@ -61,7 +61,7 @@ jobs:
           coverage=$(grep -Po '([0-9.]+)% coverage' tarpaulin-summary.txt | grep -o '[0-9.]\+')
           echo "Coverage is $coverage%"
           coverage_percentage=$(echo "$coverage" | bc)
-          echo "Coverage percentage is $coverage_percentage" >> $GITHUB_ENV
+          echo "Coverage_percentage=$coverage_percentage" >> $GITHUB_ENV
           if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
             echo "Coverage is below 90%"
             exit 1
