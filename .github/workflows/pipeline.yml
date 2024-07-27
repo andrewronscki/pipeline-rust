@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   audit:
-    name: audit
+    name: Audit
     runs-on: ubuntu-latest
 
     steps:
@@ -52,22 +52,15 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       - name: Run Tests with Coverage
-        run: cargo tarpaulin --features no-main --out Html
-
-      - name: Check Coverage
         run: |
-          if [ -f target/tarpaulin/html/index.html ]; then
-            coverage=$(grep -Po 'line-rate="\K[0-9.]+' target/tarpaulin/html/index.html)
-            echo "Coverage is $coverage"
-            coverage_percentage=$(echo "$coverage * 100" | bc)
-            echo "Coverage percentage is $coverage_percentage"
-            if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
-              echo "Coverage is below 90%"
-              exit 1
-            else
-              echo "Coverage is above 90%"
-            fi
-          else
-            echo "Coverage report not found"
+          cargo tarpaulin --features no-main --out text-summary > tarpaulin-summary.txt
+          coverage=$(grep -Po 'lines: \K[0-9.]+' tarpaulin-summary.txt)
+          echo "Coverage is $coverage"
+          coverage_percentage=$(echo "$coverage * 100" | bc)
+          echo "Coverage percentage is $coverage_percentage"
+          if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
+            echo "Coverage is below 90%"
             exit 1
+          else
+            echo "Coverage is above 90%"
           fi
