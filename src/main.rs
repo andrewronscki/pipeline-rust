@@ -2,6 +2,7 @@ fn soma(a: i32, b: i32) -> i32 {
     a + b
 }
 
+#[cfg(not(feature = "no-main"))]
 fn main() {
     let soma = soma(10, 5);
     println!("A soma é: {}", soma);

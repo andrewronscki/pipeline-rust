@@ -52,7 +52,7 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       - name: Run Tests with Coverage
-        run: cargo tarpaulin --out Html
+        run: cargo tarpaulin --features no-main --out Html
 
       - name: Check Coverage
         run: |
