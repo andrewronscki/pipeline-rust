@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   audit:
-    name: Audit
+    name: audit
     runs-on: ubuntu-latest
 
     steps:
@@ -53,8 +53,8 @@ jobs:
 
       - name: Run Tests with Coverage
         run: |
-          cargo tarpaulin --features no-main --out text-summary > tarpaulin-summary.txt
-          coverage=$(grep -Po 'lines: \K[0-9.]+' tarpaulin-summary.txt)
+          cargo tarpaulin --features no-main --out Stdout > tarpaulin-summary.txt
+          coverage=$(grep -Po 'line coverage: \K[0-9.]+' tarpaulin-summary.txt)
           echo "Coverage is $coverage"
           coverage_percentage=$(echo "$coverage * 100" | bc)
           echo "Coverage percentage is $coverage_percentage"
