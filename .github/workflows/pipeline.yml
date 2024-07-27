@@ -51,7 +51,7 @@ jobs:
       - name: Install cargo-tarpaulin
         run: cargo install cargo-tarpaulin
 
-      - name: Run Tests with Coverage
+      - name: Run Tests with Coverage - Verificando cobertura de testes se está a cima de 90%
         run: |
           cargo tarpaulin --features no-main --out Stdout 2>&1 | tee tarpaulin-summary.txt || true
           cat tarpaulin-summary.txt
