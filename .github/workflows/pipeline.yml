@@ -1,0 +1,70 @@
+name: Pull Request
+
+on: [pull_request]
+
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Install Clippy
+        run: rustup component add clippy
+
+      - name: Run Clippy - Verificando qualidade do código, práticas recomendadas, e possíveis bugs
+        run: cargo clippy -- -D warnings
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Run cargo-audit - Verificando se possui algum pacote com vulnerabilidade
+        run: cargo audit
+
+  tests:
+    name: Tests & Lint
+    needs: audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Install Rustfmt
+        run: rustup component add rustfmt
+
+      - name: Check Rustfmt - Verificando formatação do código
+        run: cargo fmt -- --check
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Run Tests - Executando testes da aplicação
+        run: cargo test
+
+      - name: Run Coverage - Verificando cobertura de testes se está acima de 90%
+        run: |
+          cargo tarpaulin --features no-main --out Stdout 2>&1 | tee tarpaulin-summary.txt || true
+          cat tarpaulin-summary.txt
+          coverage=$(grep -Po '([0-9.]+)% coverage' tarpaulin-summary.txt | grep -o '[0-9.]\+')
+          echo "Coverage is $coverage%"
+          coverage_percentage=$(echo "$coverage" | bc)
+          echo "Coverage_percentage=$coverage_percentage" >> $GITHUB_ENV
+          if (( $(echo "$coverage_percentage < 90" | bc -l) )); then
+            echo "Coverage is below 90%"
+            exit 1
+          else
+            echo "Coverage is above 90%"
+          fi
